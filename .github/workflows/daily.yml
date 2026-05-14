@@ -1,0 +1,31 @@
+name: Daily Calltouch Export
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 09:00 МСК = 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      run_date:
+        description: "Дата за которую тянуть (DD/MM/YYYY). Пусто = вчера."
+        required: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: pip install -r requirements.txt
+      - name: Run export
+        env:
+          CALLTOUCH_SITE_ID:   ${{ secrets.CALLTOUCH_SITE_ID }}
+          CALLTOUCH_API_TOKEN: ${{ secrets.CALLTOUCH_API_TOKEN }}
+          GOOGLE_SHEET_ID:     ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SA_JSON:      ${{ secrets.GOOGLE_SA_JSON }}
+          ORDER_STATUS:        ${{ secrets.ORDER_STATUS }}
+          RUN_DATE:            ${{ github.event.inputs.run_date }}
+        run: python -m src.main
