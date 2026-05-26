@@ -27,12 +27,12 @@ def open_worksheet(sheet_id: str, sa_json: str | None, sa_json_path: str | None)
     return spreadsheet.get_worksheet(0)
 
 
-def read_all_rows(worksheet) -> list[list[str]]:
-    """Return all rows except the header."""
+def read_header_and_rows(worksheet) -> tuple[list[str], list[list[str]]]:
+    """Вернуть (шапка, строки данных без шапки)."""
     values = worksheet.get_all_values()
     if not values:
-        return []
-    return values[1:]
+        return [], []
+    return values[0], values[1:]
 
 
 def append(worksheet, rows: list[list[str]]) -> None:

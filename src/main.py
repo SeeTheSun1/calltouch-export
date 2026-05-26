@@ -37,10 +37,14 @@ def main() -> int:
     calls = calltouch.fetch_calls(site_id, api_token, run_date)
     fetched = len(calls)
 
-    candidate_rows = transform.to_rows(calls, order_status)
+    records = transform.to_records(calls, order_status)
 
     worksheet = sheets.open_worksheet(sheet_id, sa_json, sa_json_path)
-    existing = sheets.read_all_rows(worksheet)
+    header, existing = sheets.read_header_and_rows(worksheet)
+    if not header:
+        raise RuntimeError("Лист пустой: ожидается строка-заголовок в первой строке")
+
+    candidate_rows = transform.align_to_header(records, header)
     new_rows = transform.filter_new(candidate_rows, existing)
 
     duplicates = fetched - len(new_rows)

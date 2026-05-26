@@ -1,11 +1,14 @@
-COLUMNS = [
+# Какие именованные столбцы таблицы заполняет скрипт.
+# Привязка идёт ПО ИМЕНИ заголовка (строка 1 листа), а не по позиции —
+# поэтому перестановка/добавление столбцов в таблице ничего не ломает.
+# Столбцы шапки, которых здесь нет (id, client_uniq_id, emails, phones,
+# revenue, cost, COMMENT и т.п.), остаются пустыми.
+FILLED_COLUMNS = [
     "create_date_time",
     "client_ids",
     "emails_md5",
     "phones_md5",
     "order_status",
-    "revenue",
-    "cost",
 ]
 
 CALLTOUCH_BASE_URL = "https://api.calltouch.ru/calls-service/RestAPI"

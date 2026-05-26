@@ -2,8 +2,6 @@ import hashlib
 import re
 from datetime import datetime
 
-from .config import COLUMNS
-
 
 def normalize_phone(raw: str | None) -> str:
     if not raw:
@@ -48,27 +46,45 @@ def _pick_email(call: dict) -> str:
     return callback_info.get("email") or call.get("email") or ""
 
 
-def to_rows(calls: list[dict], order_status: str) -> list[list[str]]:
-    rows: list[list[str]] = []
+def to_records(calls: list[dict], order_status: str) -> list[dict]:
+    """Каждый звонок → словарь {имя_столбца: значение}.
+
+    Заполняются только наши столбцы (см. config.FILLED_COLUMNS). Раскладка
+    по конкретным позициям происходит позже, в align_to_header, по реальной
+    шапке листа — поэтому код не зависит от порядка столбцов в таблице."""
+    records: list[dict] = []
     for c in calls:
         phone = normalize_phone(c.get("callerNumber"))
         email = normalize_email(_pick_email(c))
-        row = [
-            format_dt(c.get("date")),
-            str(c.get("yaClientId") or ""),
-            md5(email),
-            md5(phone),
-            order_status,
-            "",
-            "",
-        ]
-        rows.append(row)
+        records.append({
+            "create_date_time": format_dt(c.get("date")),
+            "client_ids": str(c.get("yaClientId") or ""),
+            "emails_md5": md5(email),
+            "phones_md5": md5(phone),
+            "order_status": order_status,
+        })
+    return records
+
+
+def align_to_header(records: list[dict], header: list[str]) -> list[list[str]]:
+    """Разложить записи по столбцам в порядке шапки листа.
+
+    Для столбца, которого нет в записи (id, client_uniq_id, emails, phones,
+    revenue, cost, COMMENT и т.п.), ставится пустая строка."""
+    rows: list[list[str]] = []
+    for rec in records:
+        rows.append([str(rec.get(col, "")) for col in header])
     return rows
 
 
 def filter_new(new_rows: list[list[str]], existing_rows: list[list[str]]) -> list[list[str]]:
-    """Drop rows whose full tuple (all 7 columns) already exists in the sheet."""
-    n = len(COLUMNS)
+    """Отбросить строки, полностью идентичные уже существующим в листе.
+
+    Сравнение по всем столбцам шапки (new_rows уже выровнены через
+    align_to_header, поэтому длины совпадают)."""
+    if not new_rows:
+        return []
+    n = len(new_rows[0])
 
     def _norm(row: list) -> tuple:
         padded = list(row) + [""] * (n - len(row))
