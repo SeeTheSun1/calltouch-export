@@ -2,11 +2,11 @@ name: Daily Calltouch Export
 
 on:
   schedule:
-    - cron: "0 6 * * *"   # 09:00 МСК = 06:00 UTC
+    - cron: "17 6 * * *"   # 09:17 МСК = 06:17 UTC (нечётная минута — GitHub реже отбрасывает запуск вне часа пик)
   workflow_dispatch:
     inputs:
       run_date:
-        description: "Дата за которую тянуть (DD/MM/YYYY). Пусто = вчера."
+        description: "Конец 7-дневного окна (DD/MM/YYYY). Пусто = вчера; тянутся 7 дней по эту дату включительно."
         required: false
 
 jobs:
