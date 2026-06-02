@@ -32,9 +32,12 @@ def main() -> int:
         raise RuntimeError("Either GOOGLE_SA_JSON or GOOGLE_SA_JSON_PATH must be set")
 
     run_date = _parse_run_date(os.environ.get("RUN_DATE"))
-    print(f"Fetching Calltouch calls for {run_date.isoformat()} (MSK)")
+    # Берём окно в 7 дней (с запасом): Actions иногда пропускает запуск,
+    # пропущенные дни добираются здесь, дубли отсекаются по таблице ниже.
+    date_from = run_date - timedelta(days=6)
+    print(f"Fetching Calltouch calls for {date_from.isoformat()}..{run_date.isoformat()} (MSK)")
 
-    calls = calltouch.fetch_calls(site_id, api_token, run_date)
+    calls = calltouch.fetch_calls(site_id, api_token, date_from, run_date)
     fetched = len(calls)
 
     records = transform.to_records(calls, order_status)

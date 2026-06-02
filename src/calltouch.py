@@ -30,14 +30,13 @@ def _get_with_retry(url: str, params: dict) -> dict:
     raise RuntimeError(f"Calltouch API failed after {RETRY_MAX_ATTEMPTS} attempts: {last_exc}")
 
 
-def fetch_calls(site_id: str, api_token: str, target_date: date) -> list[dict]:
-    """Fetch unique+target CPC calls for a single day with pagination."""
+def fetch_calls(site_id: str, api_token: str, date_from: date, date_to: date) -> list[dict]:
+    """Fetch unique+target CPC calls for a date range (inclusive) with pagination."""
     url = f"{CALLTOUCH_BASE_URL}/{site_id}/calls-diary/calls"
-    date_str = target_date.strftime("%d/%m/%Y")
     base_params = {
         "clientApiId": api_token,
-        "dateFrom": date_str,
-        "dateTo": date_str,
+        "dateFrom": date_from.strftime("%d/%m/%Y"),
+        "dateTo": date_to.strftime("%d/%m/%Y"),
         "limit": PAGE_LIMIT,
         "uniqueOnly": "true",
         "targetOnly": "true",
